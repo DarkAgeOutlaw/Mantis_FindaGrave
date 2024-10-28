@@ -106,6 +106,7 @@ public final class CropToolbar: UIView, CropToolbarProtocol {
     }()
 
     private var resetButton: UIButton?
+    private var resetButtonPlaceholder = UIView()
     private var optionButtonStackView: UIStackView?
     
     private var autoAdjustButtonActive = false {
@@ -166,7 +167,9 @@ public final class CropToolbar: UIView, CropToolbarProtocol {
             let icon = iconProvider?.getResetIcon() ?? ToolBarButtonImageBuilder.resetImage()
             resetButton = createResetButton(with: icon)
             addButtonsToContainer(button: resetButton)
-            resetButton?.isHidden = true
+            addButtonsToContainer(button: resetButtonPlaceholder)
+            //resetButton?.isHidden = true
+            hideResetButton(true)
         }
 
         if config.toolbarButtonOptions.contains(.ratio) && config.ratioCandidatesShowType == .presentRatioListFromButton {
@@ -176,7 +179,8 @@ public final class CropToolbar: UIView, CropToolbarProtocol {
 
                 if config.presetRatiosButtonSelected {
                     handleFixedRatioSetted(ratio: 0)
-                    resetButton?.isHidden = false
+//                    resetButton?.isHidden = false
+                    hideResetButton(false)
                 }
             }
         }
@@ -184,6 +188,11 @@ public final class CropToolbar: UIView, CropToolbarProtocol {
         if config.mode == .normal {
             addButtonsToContainer(button: cropButton)
         }
+    }
+    
+    func hideResetButton(_ hide: Bool) {
+        resetButton?.isHidden = hide
+        resetButtonPlaceholder.isHidden = !hide
     }
     
     public override var intrinsicContentSize: CGSize {
@@ -219,11 +228,13 @@ public final class CropToolbar: UIView, CropToolbarProtocol {
     }
 
     public func handleCropViewDidBecomeResettable() {
-        resetButton?.isHidden = false
+//        resetButton?.isHidden = false
+        hideResetButton(false)
     }
 
     public func handleCropViewDidBecomeUnResettable() {
-        resetButton?.isHidden = true
+//        resetButton?.isHidden = true
+        hideResetButton(true)
     }
     
     public func handleImageAutoAdjustable() {
@@ -369,7 +380,7 @@ extension CropToolbar {
         optionButtonStackView?.rightAnchor.constraint(equalTo: rightAnchor).isActive = true
     }
 
-    private func addButtonsToContainer(button: UIButton?) {
+    private func addButtonsToContainer(button: UIView?) {
         if let button = button {
             optionButtonStackView?.addArrangedSubview(button)
         }
