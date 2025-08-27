@@ -187,6 +187,10 @@ open class CropViewController: UIViewController {
     override public func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
         if initialLayout == false {
+            guard cropView.bounds.size != .zero else {
+                return
+            }
+            
             initialLayout = true
             view.layoutIfNeeded()
             cropView.resetComponents()
@@ -418,6 +422,7 @@ extension CropViewController {
         guard config.showAttachedCropToolbar else {
             stackView?.removeArrangedSubview(cropStackView)
             stackView?.addArrangedSubview(cropStackView)
+            view.layoutIfNeeded()
             return
         }
         
@@ -585,6 +590,26 @@ extension CropViewController: CropToolbarDelegate {
 
 // API
 extension CropViewController {
+    public func crop(by cropInfo: CropInfo) {
+        guard let image = cropView.image.crop(by: cropInfo) else {
+            Task { @MainActor [weak self] in
+                guard let self = self else { return }
+                self.delegate?.cropViewControllerDidFailToCrop(self, original: cropView.image)
+            }
+            return
+        }
+
+        let transformation = cropView.makeTransformation()
+
+        Task { @MainActor [weak self] in
+            guard let self = self else { return }
+            delegate?.cropViewControllerDidCrop(self,
+                                                cropped: image,
+                                                transformation: transformation,
+                                                cropInfo: cropInfo)
+        }
+    }
+    
     public func crop() {
         switch config.cropMode {
         case .sync:
